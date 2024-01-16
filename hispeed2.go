@@ -1,5 +1,11 @@
 package hispeed2
 
+import (
+	"fmt"
+
+	"github.com/joho/godotenv"
+)
+
 const version = "1.0.0"
 
 type HiSpeed2 struct {
@@ -19,6 +25,17 @@ func (h *HiSpeed2) New(rootPath string) error {
 		return err
 	}
 
+	err = h.checkDotEnv(rootPath) // Check the root path of the application (or TestApp during development)...
+	if err != nil {
+		return err
+	}
+
+	// read .env
+	err = godotenv.Load(rootPath + "/.env")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -30,6 +47,14 @@ func (h *HiSpeed2) Init(p initPaths) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (h *HiSpeed2) checkDotEnv(path string) error {
+	err := h.CreateFileIfNotExists(fmt.Sprintf("%s/.env", path)) // look into the root lvl of app to see if the env file exist, if not return an err...
+	if err != nil {
+		return err
 	}
 	return nil
 }
