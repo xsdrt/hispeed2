@@ -18,8 +18,16 @@ type HiSpeed2 struct {
 	ErrorLog *log.Logger
 	InfoLog  *log.Logger
 	RootPath string
+	config   config
 }
 
+type config struct {
+	port     string
+	renderer string
+}
+
+// New reads the .env file, creates our app config, populates the HiSpeed2 type with settings
+// based on the .env values, and creates necessary folders and files if they don't exist...
 func (h *HiSpeed2) New(rootPath string) error {
 	pathConfig := initPaths{
 		rootPath:    rootPath,
@@ -48,10 +56,17 @@ func (h *HiSpeed2) New(rootPath string) error {
 	h.ErrorLog = errorLog
 	h.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	h.Version = version
+	h.RootPath = rootPath
+
+	h.config = config{
+		port:     os.Getenv("PORT"),
+		renderer: os.Getenv("RENDERER"),
+	}
 
 	return nil
 }
 
+// Init creates necessary folders for our HiSpped2 application...
 func (h *HiSpeed2) Init(p initPaths) error {
 	root := p.rootPath //holds the full root path to the web app...
 	for _, path := range p.folderNames {
