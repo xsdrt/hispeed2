@@ -3,14 +3,19 @@ package hispeed2
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
 
 const version = "1.0.0"
 
+// Hispeed2  is the overall type for the Hispeed2 package... Exported members in tghis type
+// are available to any applicatiomn that uses it...Other than the config as no reason for anybody using Hispeed 2 needs to know this info...
 type HiSpeed2 struct {
 	AppName  string
 	Debug    bool
@@ -18,12 +23,13 @@ type HiSpeed2 struct {
 	ErrorLog *log.Logger
 	InfoLog  *log.Logger
 	RootPath string
+	Routes   *chi.Mux
 	config   config
 }
 
 type config struct {
 	port     string
-	renderer string
+	renderer string // What template engine to use , either the std Go or Jet pkg...
 }
 
 // New reads the .env file, creates our app config, populates the HiSpeed2 type with settings
@@ -50,13 +56,14 @@ func (h *HiSpeed2) New(rootPath string) error {
 		return err
 	}
 
-	// Creatoe loggers...
+	// Create loggers...
 	infoLog, errorLog := h.startLogers()
 	h.InfoLog = infoLog
 	h.ErrorLog = errorLog
 	h.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	h.Version = version
 	h.RootPath = rootPath
+	h.Routes = h.routes().(*chi.Mux) // Cast to a pointer of chi.Mux...
 
 	h.config = config{
 		port:     os.Getenv("PORT"),
@@ -77,6 +84,22 @@ func (h *HiSpeed2) Init(p initPaths) error {
 		}
 	}
 	return nil
+}
+
+// ListenAndServe starts the web server...
+func (h *HiSpeed2) ListenAndServe() {
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%s", os.Getenv("PORT")),
+		ErrorLog:     h.ErrorLog,
+		Handler:      h.routes(),
+		IdleTimeout:  30 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 600 * time.Second, // Longtime out for dev purposes for now...
+	}
+
+	h.InfoLog.Printf("Listening on port %s", os.Getenv("PORT"))
+	err := srv.ListenAndServe()
+	h.ErrorLog.Fatal(err)
 }
 
 func (h *HiSpeed2) checkDotEnv(path string) error {
