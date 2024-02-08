@@ -95,7 +95,7 @@ func (h *HiSpeed2) ListenAndServe() {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("PORT")),
 		ErrorLog:     h.ErrorLog,
-		Handler:      h.routes(),
+		Handler:      h.Routes,
 		IdleTimeout:  30 * time.Second,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 600 * time.Second, // Longtime out for dev purposes for now...
