@@ -26,6 +26,7 @@ type HiSpeed2 struct {
 	RootPath string
 	Routes   *chi.Mux
 	Render   *render.Render
+	JetViews *jet.Set
 	config   config
 }
 
@@ -71,6 +72,12 @@ func (h *HiSpeed2) New(rootPath string) error {
 		port:     os.Getenv("PORT"),
 		renderer: os.Getenv("RENDERER"),
 	}
+	var views = jet.NewSet(
+		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath))
+		jet.InDevelopmentMode(),
+	)
+
+	h.JetViews = views
 
 	h.createRenderer()
 
@@ -129,6 +136,7 @@ func (h *HiSpeed2) createRenderer() {
 		Renderer: h.config.renderer,
 		RootPath: h.RootPath,
 		Port:     h.config.port,
+		JetViews: h.JetViews,
 	}
 	h.Render = &myRenderer
 
