@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CloudyKit/jet/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/xsdrt/hispeed2/render"
@@ -73,7 +74,7 @@ func (h *HiSpeed2) New(rootPath string) error {
 		renderer: os.Getenv("RENDERER"),
 	}
 	var views = jet.NewSet(
-		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath))
+		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
 		jet.InDevelopmentMode(),
 	)
 
