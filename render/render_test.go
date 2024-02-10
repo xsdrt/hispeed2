@@ -19,12 +19,12 @@ func TestRender_page(t *testing.T) {
 
 	err = testRenderer.Page(w, r, "home", nil, nil)
 	if err != nil {
-		t.Error("Error renderering page", err)
+		t.Error("Error rendering page", err)
 	}
 
 	testRenderer.Renderer = "jet"
 	err = testRenderer.Page(w, r, "home", nil, nil)
 	if err != nil {
-		t.Error("Error renderering page", err)
+		t.Error("Error rendering page", err)
 	}
 }
