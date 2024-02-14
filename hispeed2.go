@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudyKit/jet/v6"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/xsdrt/hispeed2/render"
@@ -27,13 +28,16 @@ type HiSpeed2 struct {
 	RootPath string
 	Routes   *chi.Mux
 	Render   *render.Render
+	Session  *scs.SessionManager
 	JetViews *jet.Set
 	config   config
 }
 
 type config struct {
-	port     string
-	renderer string // What template engine to use , either the std Go or Jet pkg...
+	port        string
+	renderer    string // What template engine to use , either the std Go or Jet pkg...
+	cookie      cookieConfig
+	sessionType string
 }
 
 // New reads the .env file, creates our app config, populates the HiSpeed2 type with settings
@@ -72,7 +76,17 @@ func (h *HiSpeed2) New(rootPath string) error {
 	h.config = config{
 		port:     os.Getenv("PORT"),
 		renderer: os.Getenv("RENDERER"),
+		cookie: cookieConfig{
+			name:     os.Getenv("COOKIE_NAME"),
+			lifetime: os.Getenv("COOKIE_LIFETIME"),
+			persist:  os.Getenv("COOKIE_PERSISTS"),
+			secure:   os.Getenv("COOKIE_SECURE"),
+		},
+		sessionType: os.Getenv("SESSION_TYPE"),
 	}
+
+	// create a session...
+
 	var views = jet.NewSet(
 		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
 		jet.InDevelopmentMode(),
