@@ -82,6 +82,7 @@ func (h *HiSpeed2) New(rootPath string) error {
 			lifetime: os.Getenv("COOKIE_LIFETIME"),
 			persist:  os.Getenv("COOKIE_PERSISTS"),
 			secure:   os.Getenv("COOKIE_SECURE"),
+			domain:   os.Getenv("COOKIE_DOMAIN"),
 		},
 		sessionType: os.Getenv("SESSION_TYPE"),
 	}
@@ -93,6 +94,7 @@ func (h *HiSpeed2) New(rootPath string) error {
 		CookiePersist:  h.config.cookie.persist,
 		CookieName:     h.config.cookie.name,
 		SessionType:    h.config.sessionType,
+		CookieDomain:   h.config.cookie.domain,
 	}
 	h.Session = sess.InitSession()
 
@@ -108,7 +110,7 @@ func (h *HiSpeed2) New(rootPath string) error {
 	return nil
 }
 
-// Init creates necessary folders for our HiSpped2 application...
+// Init creates necessary folders for our HiSpeed2 application...
 func (h *HiSpeed2) Init(p initPaths) error {
 	root := p.rootPath //holds the full root path to the web app...
 	for _, path := range p.folderNames {
