@@ -19,11 +19,11 @@ type Session struct {
 	CookieSecure   string
 }
 
-func (c *Session) InitSession() *scs.SessionManager {
+func (h *Session) InitSession() *scs.SessionManager {
 	var persist, secure bool
 
 	// how long should session last?
-	minutes, err := strconv.Atoi(c.CookieLifetime)
+	minutes, err := strconv.Atoi(h.CookieLifetime)
 	if err != nil {
 		minutes = 60
 	}
