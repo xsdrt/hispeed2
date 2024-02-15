@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/xsdrt/hispeed2/render"
+	"github.com/xsdrt/hispeed2/session"
 )
 
 const version = "1.0.0"
@@ -86,6 +87,14 @@ func (h *HiSpeed2) New(rootPath string) error {
 	}
 
 	// create a session...
+
+	sess := session.Session{
+		CookieLifetime: h.config.cookie.lifetime,
+		CookiePersist:  h.config.cookie.persist,
+		CookieName:     h.config.cookie.name,
+		SessionType:    h.config.sessionType,
+	}
+	h.Session = sess.InitSession()
 
 	var views = jet.NewSet(
 		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),

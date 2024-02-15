@@ -9,6 +9,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 )
 
+// using the alexedwards/scs package for session control...
 type Session struct {
 	CookieLifetime string
 	CookiePersist  string
@@ -28,12 +29,12 @@ func (c *Session) InitSession() *scs.SessionManager {
 	}
 
 	// should cookies consist?
-	if strings.ToLower(c.CookiePersist) == "true" {
+	if strings.ToLower(h.CookiePersist) == "true" {
 		persist = true
 	}
 
 	// must cookies be secure?
-	if strings.ToLower(c.CookieSecure) == "true" {
+	if strings.ToLower(h.CookieSecure) == "true" {
 		secure = true
 	}
 
@@ -41,9 +42,23 @@ func (c *Session) InitSession() *scs.SessionManager {
 	session := scs.New()
 	session.Lifetime = time.Duration(minutes) * time.Minute
 	session.Cookie.Persist = persist
-	session.Cookie.Name = c.CookieName
+	session.Cookie.Name = h.CookieName
 	session.Cookie.Secure = secure
-	session.Cookie.Domain = c.CookieDomain
+	session.Cookie.Domain = h.CookieDomain
 	session.Cookie.SameSite = http.SameSiteLaxMode
+
+	// which session store?
+	switch strings.ToLower(h.SessionType) {
+	case "redis":
+
+	case "mysql", "mariadb":
+
+	case "postgres", "postgresql":
+
+	default:
+		//cookie
+	}
+
+	return session
 
 }
