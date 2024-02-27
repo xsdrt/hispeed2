@@ -9,7 +9,7 @@ import (
 )
 
 func (h *HiSpeed2) OpenDB(dbType, dsn string) (*sql.DB, error) {
-	if dbType == "postgres" || dbType == "pstgresql" {
+	if dbType == "postgres" || dbType == "postgresql" {
 		dbType = "pgx"
 	}
 
