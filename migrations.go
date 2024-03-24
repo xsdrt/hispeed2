@@ -12,7 +12,10 @@ import (
 )
 
 func (h *HiSpeed2) MigrateUp(dsn string) error {
-	m, err := migrate.New("file://"+h.RootPath+"/migrations", dsn) // create /open up the migration file...
+	// windows only://rootPath := filepath.ToSlash(h.RootPath) // Added this due to a problem in the go-migrate pkg
+
+	// windows only:// m, err := migrate.New("file://"+rootPath+"/migrations", dsn) // create /open up the migration file...changed from h.RootPath to correct an interpretation problem...
+	m, err := migrate.New("file://"+h.RootPath+"/migrations", dsn)
 	if err != nil {
 		return err
 	}
@@ -26,6 +29,9 @@ func (h *HiSpeed2) MigrateUp(dsn string) error {
 }
 
 func (h *HiSpeed2) MigrateDownAll(dsn string) error {
+	// windows only://rootPath := filepath.ToSlash(h.RootPath)
+
+	// windows only://m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	m, err := migrate.New("file://"+h.RootPath+"/migrations", dsn)
 	if err != nil {
 		return err
@@ -40,6 +46,9 @@ func (h *HiSpeed2) MigrateDownAll(dsn string) error {
 }
 
 func (h *HiSpeed2) Steps(n int, dsn string) error {
+	// windows only://rootPath := filepath.ToSlash(h.RootPath)
+
+	// windows only://m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	m, err := migrate.New("file://"+h.RootPath+"/migrations", dsn)
 	if err != nil {
 		return err
@@ -54,6 +63,9 @@ func (h *HiSpeed2) Steps(n int, dsn string) error {
 }
 
 func (h *HiSpeed2) MigrateForce(dsn string) error { //if you have an error in the migration file, might be marked dirty in the DB , so force the migration...
+	// windows only://rootPath := filepath.ToSlash(h.RootPath)
+
+	// windows only://m, err := migrate.New("file://"+rootPath+"/migrations", dsn)
 	m, err := migrate.New("file://"+h.RootPath+"/migrations", dsn)
 	if err != nil {
 		return err
