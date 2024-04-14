@@ -33,6 +33,8 @@ require (
 
 require (
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
+	github.com/alexedwards/scs/mysqlstore v0.0.0-20240316134038-7e11d57e8885
+	github.com/alexedwards/scs/postgresstore v0.0.0-20240316134038-7e11d57e8885
 	github.com/alexedwards/scs/v2 v2.7.0
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/go-sql-driver/mysql v1.8.0
