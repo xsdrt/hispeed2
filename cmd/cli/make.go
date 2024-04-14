@@ -101,6 +101,12 @@ func doMake(arg2, arg3 string) error {
 			exitGracefully(err)
 		}
 
+	case "session":
+		err := doSessionTable()
+		if err != nil {
+			exitGracefully(err)
+		}
+
 	}
 
 	return nil
