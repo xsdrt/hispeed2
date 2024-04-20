@@ -35,3 +35,26 @@ func (c *RedisCache) Has(str string) (bool, error) {
 
 	return ok, nil
 }
+
+// temp stub method(s)
+func (c *RedisCache) Get(str string) (interface{}, error) {
+
+	return "", nil // Just returning anything and  nil for now
+}
+
+func (c *RedisCache) Set(str string, data interface{}, ttl ...int) error {
+
+	return nil // Just returning anything and  nil for now
+}
+
+func (c *RedisCache) Forget(str string) error {
+	return nil // Just returning nil for now
+}
+
+func (c *RedisCache) EmptyByMatch(str string) error {
+	return nil // Just returning nil for now
+}
+
+func (c *RedisCache) Empty() error {
+	return nil // Just returning nil for now
+}
