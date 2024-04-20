@@ -15,7 +15,7 @@ import (
 func doMake(arg2, arg3 string) error {
 
 	switch arg2 {
-	case "key":
+	case "Key":
 		rnd := his.RandomString(32)
 		color.Yellow("32 character encryption key: %s", rnd)
 
