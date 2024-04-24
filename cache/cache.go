@@ -79,7 +79,7 @@ func (c *RedisCache) Get(str string) (interface{}, error) {
 
 	item := decoded[key]
 
-	return item, nil // Just returning anything and  nil for now
+	return item, nil
 }
 
 // Put(set) something in the cache...
@@ -95,13 +95,13 @@ func (c *RedisCache) Set(str string, value interface{}, expires ...int) error {
 		return err
 	}
 
-	if len(expires) > 0 {
+	if len(expires) > 0 { // Check to see if there is an expirey, if so; do this...
 		_, err := conn.Do("SETEX", key, expires[0], string(encoded))
 		if err != nil {
 			return err
 		}
-	} else {
-		_, err := conn.Do("SETEX", key, string(encoded))
+	} else { // If no expirey do this...
+		_, err := conn.Do("SET", key, string(encoded))
 		if err != nil {
 			return err
 		}
