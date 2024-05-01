@@ -23,12 +23,12 @@ func TestMain(m *testing.M) {
 		MaxActive:   1000,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", s.Addr())
+			return redis.Dial("tcp", s.Addr()) //s.Addr gives the addrss for the temp in memory Redis server...
 		},
 	}
 
 	testRedisCache.Conn = &pool
-	testRedisCache.Prefix = "test-hispeed2"
+	testRedisCache.Prefix = "test-hispeed2" // The prfix to append (something not used anywhere else...)
 
 	defer testRedisCache.Conn.Close()
 

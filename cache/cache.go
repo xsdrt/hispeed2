@@ -136,7 +136,7 @@ func (c *RedisCache) EmptyByMatch(str string) error {
 	}
 
 	for _, x := range keys {
-		err := c.Forget(x)
+		_, err := conn.Do("DEL", x)
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func (c *RedisCache) EmptyByMatch(str string) error {
 
 // Empty the entire cache...
 func (c *RedisCache) Empty() error {
-	key := fmt.Sprintf("%s:", c.Prefix) // Want get rid of stuff in the cache htat has the prefix: (notice colon) appened to them...
+	key := fmt.Sprintf("%s:", c.Prefix) // Want get rid of stuff in the cache that has the prefix: (notice colon) appened to them...
 	conn := c.Conn.Get()
 	defer conn.Close()
 
@@ -157,7 +157,7 @@ func (c *RedisCache) Empty() error {
 	}
 
 	for _, x := range keys {
-		err = c.Forget(x)
+		_, err := conn.Do("DEL", x)
 		if err != nil {
 			return err
 		}
