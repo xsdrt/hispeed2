@@ -46,4 +46,5 @@ require (
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/iancoleman/strcase v0.3.0
+	github.com/justinas/nosurf v1.1.1
 )
