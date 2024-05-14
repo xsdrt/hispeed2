@@ -4,6 +4,7 @@ go 1.21.5
 
 require (
 	github.com/CloudyKit/jet/v6 v6.2.0
+	github.com/alexedwards/scs/redisstore v0.0.0-20240316134038-7e11d57e8885
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/fatih/color v1.16.0
