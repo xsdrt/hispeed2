@@ -63,4 +63,5 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/justinas/nosurf v1.1.1
+	github.com/robfig/cron/v3 v3.0.1
 )
