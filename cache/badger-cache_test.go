@@ -138,4 +138,5 @@ func TestBadgerCache_EmptyByMatch(t *testing.T) {
 		t.Error("beta not found in cache when it should be")
 	}
 
+	// doing a sanity commit with this comment...
 }
