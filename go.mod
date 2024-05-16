@@ -41,6 +41,8 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
+	github.com/xhit/go-simple-mail/v2 v2.16.0 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
