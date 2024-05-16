@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"github.com/xhit/go-simple-mail/v2"
 )
 
 type Mail struct {
 	Domain      string
 	Templates   string
 	Host        string
-	Port        string
+	Port        int
 	Username    string
 	Password    string
 	Encryption  string
@@ -56,6 +57,22 @@ func (m *Mail) Send(msg Message) error {
 }
 
 func (m *Mail) SendSTMPMessage(msg Message) error {
+	formattedMessage, err := m.buildHTMLMessage(msg)
+	if err != nil {
+		return err
+	}
+
+	plainMessage, err := m.buildPlainTextMessage(msg)
+	if err != nil {
+		return err
+	}
+
+	server := mail.NewSMTPClient()
+	server.Host = m.Host
+	server.Port = m.Port
+	server.Username = m.Username
+	server.Password = m.Password
+	server.Encryption = m.Encryption
 
 	return nil
 }
