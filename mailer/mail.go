@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"github.com/xhit/go-simple-mail/v2"
+	"time"
+
+	"github.com/vanng822/go-premailer/premailer"
+	mail "github.com/xhit/go-simple-mail/v2"
 )
 
 type Mail struct {
@@ -41,12 +44,12 @@ type Result struct {
 
 func (m *Mail) ListenForMail() {
 	for {
-		msg := <-m.Jobs // This chan will listen and then send the message
-		err := m.Send(msg)
+		msg := <-m.Jobs    // This chan will listen for incoming message...
+		err := m.Send(msg) // Then attempt to send the message...
 		if err != nil {
-			m.Results <- Result{false, err}
+			m.Results <- Result{false, err} // If an error, return the error...
 		} else {
-			m.Results <- Result{true, nil}
+			m.Results <- Result{true, nil} // Otherwise success...
 		}
 	}
 }
@@ -72,9 +75,50 @@ func (m *Mail) SendSTMPMessage(msg Message) error {
 	server.Port = m.Port
 	server.Username = m.Username
 	server.Password = m.Password
-	server.Encryption = m.Encryption
+	server.Encryption = m.getEncryption(m.Encryption)
+	server.KeepAlive = false
+	server.ConnectTimeout = 10 * time.Second
+	server.SendTimeout = 10 * time.Second
+
+	smtpClient, err := server.Connect()
+	if err != nil {
+		return err
+	}
+
+	email := mail.NewMSG()
+	email.SetFrom(msg.From).
+		AddTo(msg.To).
+		SetSubject(msg.Subject)
+
+	email.SetBody(mail.TextHTML, formattedMessage)
+	email.AddAlternative(mail.TextPlain, plainMessage)
+
+	if len(msg.Attachments) > 0 {
+		for _, x := range msg.Attachments {
+			email.AddAttachment(x)
+		}
+	}
+
+	err = email.Send(smtpClient)
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func (m *Mail) getEncryption(e string) mail.Encryption {
+	switch e {
+	case "tls":
+		return mail.EncryptionSTARTTLS
+	case "ssl":
+		return mail.EncryptionSSL
+	case "none":
+		return mail.EncryptionNone
+	default:
+		return mail.EncryptionSTARTTLS
+	}
+
 }
 
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
@@ -90,6 +134,10 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	}
 
 	formattedMessage := tpl.String()
+	formattedMessage, err = m.inlineCSS(formattedMessage)
+	if err != nil {
+		return "", err
+	}
 
 	return formattedMessage, nil
 }
@@ -109,4 +157,24 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 	plainMessage := tpl.String()
 
 	return plainMessage, nil
+}
+
+func (m *Mail) inlineCSS(s string) (string, error) {
+	options := premailer.Options{
+		RemoveClasses:     false,
+		CssToAttributes:   false,
+		KeepBangImportant: true,
+	}
+
+	prem, err := premailer.NewPremailerFromString(s, &options)
+	if err != nil {
+		return "", err
+	}
+
+	html, err := prem.Transform()
+	if err != nil {
+		return "", err
+	}
+
+	return html, nil
 }
