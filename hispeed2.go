@@ -24,6 +24,8 @@ const version = "1.0.0"
 
 var useRedisCache *cache.RedisCache
 var myBadgerCache *cache.BadgerCache
+var redisPool *redis.Pool
+var badgerConn *badger.DB
 
 // Hispeed2  is the overall type for the Hispeed2 package... Exported members in tghis type
 // are available to any applicatiomn that uses it...Other than the config as no reason for anybody using Hispeed 2 needs to know this info...
@@ -98,12 +100,14 @@ func (h *HiSpeed2) New(rootPath string) error {
 	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" { // Check to see if need to connect to redis; user might not be using redis...
 		useRedisCache = h.createClientRedisCache()
 		h.Cache = useRedisCache
+		redisPool = useRedisCache.Conn
 	}
 
 	// check the .env to see if using badger for cache
 	if os.Getenv("CACHE") == "badger" {
 		myBadgerCache = h.createClientBadgerCache()
 		h.Cache = myBadgerCache
+		badgerConn = myBadgerCache.Conn
 
 		_, err = h.Scheduler.AddFunc("@daily", func() {
 			_ = myBadgerCache.Conn.RunValueLogGC(0.7)
@@ -212,7 +216,17 @@ func (h *HiSpeed2) ListenAndServe() {
 		WriteTimeout: 600 * time.Second, // Longtime out for dev purposes for now...
 	}
 
-	defer h.DB.Pool.Close()
+	if h.DB.Pool != nil {
+		defer h.DB.Pool.Close()
+	}
+
+	if redisPool != nil {
+		defer redisPool.Close()
+	}
+
+	if badgerConn != nil {
+		defer badgerConn.Close()
+	}
 
 	h.InfoLog.Printf("Listening on port %s", os.Getenv("PORT"))
 	err := srv.ListenAndServe()
