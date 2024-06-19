@@ -42,6 +42,12 @@ type Result struct {
 	Error   error
 }
 
+// ListenForMail listens to the mail channel and sends mail
+// when it recieves a payload.  It runs contiually in the background,
+// and sends error/sucess messages back on the results channel.
+// Note that if an api and api key are set, it will prefer using
+// an api to send mail...
+
 func (m *Mail) ListenForMail() {
 	for {
 		msg := <-m.Jobs    // This chan will listen for incoming message...
@@ -109,13 +115,13 @@ func (m *Mail) SendSTMPMessage(msg Message) error {
 
 func (m *Mail) getEncryption(e string) mail.Encryption {
 	switch e {
-	case "tls":
+	case "tls": // Usually primary in production...
 		return mail.EncryptionSTARTTLS
 	case "ssl":
 		return mail.EncryptionSSL
-	case "none":
+	case "none": // Only during develpment...
 		return mail.EncryptionNone
-	default:
+	default: // If the user does not specify the encrption they want use tls by default
 		return mail.EncryptionSTARTTLS
 	}
 
@@ -133,8 +139,8 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 		return "", err
 	}
 
-	formattedMessage := tpl.String() //Inline the Css to make more readable by other clients...
-	formattedMessage, err = m.inlineCSS(formattedMessage)
+	formattedMessage := tpl.String() 
+	formattedMessage, err = m.inlineCSS(formattedMessage)	//Inline the Css to make more readable by other clients...
 	if err != nil {
 		return "", err
 	}
@@ -159,7 +165,7 @@ func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
 	return plainMessage, nil
 }
 
-func (m *Mail) inlineCSS(s string) (string, error) {
+func (m *Mail) inlineCSS(s string) (string, error) { // Using the premailer pkg in this fun...
 	options := premailer.Options{
 		RemoveClasses:     false,
 		CssToAttributes:   false,
