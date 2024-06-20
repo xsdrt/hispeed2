@@ -4,6 +4,7 @@ go 1.21.5
 
 require (
 	github.com/CloudyKit/jet/v6 v6.2.0
+	github.com/ainsleyclark/go-mail v1.0.3
 	github.com/alexedwards/scs/redisstore v0.0.0-20240316134038-7e11d57e8885
 	github.com/alicebob/miniredis/v2 v2.32.1
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
@@ -13,13 +14,13 @@ require (
 	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgx/v5 v5.5.3
 	github.com/joho/godotenv v1.5.1
+	github.com/xhit/go-simple-mail/v2 v2.16.0
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/PuerkitoBio/goquery v1.9.1 // indirect
 	github.com/SparkPost/gosparkpost v0.2.0 // indirect
-	github.com/ainsleyclark/go-mail v1.0.3 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
@@ -56,7 +57,6 @@ require (
 	github.com/sendgrid/sendgrid-go v3.8.0+incompatible // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
-	github.com/xhit/go-simple-mail/v2 v2.16.0 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
