@@ -49,7 +49,7 @@ type Result struct {
 }
 
 // ListenForMail listens to the mail channel and sends mail
-// when it recieves a payload.  It runs contiually in the background,
+// when it recieves a payload.  It runs continually in the background,
 // and sends error/sucess messages back on the results channel.
 // Note that if an api and api key are set, it will prefer using
 // an api to send mail...
