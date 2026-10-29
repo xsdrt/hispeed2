@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"io"
 	"os"
 )
@@ -78,17 +79,19 @@ func (e *Encryption) Encrypt(text string) (string, error) {
 }
 
 func (e *Encryption) Decrypt(cryptoText string) (string, error) {
-	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
+	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
+	if err != nil {
+		return "", err
+	}
 
 	block, err := aes.NewCipher(e.Key)
 	if err != nil {
 		return "", err
 	}
 
-	if len(ciphertext) < aes.BlockSize { // Sanity check, if not the right length than cannont be decrypted...
-		return "", err
+	if len(ciphertext) < aes.BlockSize { // Sanity check, if not the right length than cannot be decrypted...
+		return "", errors.New("ciphertext too short")
 	}
-
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 

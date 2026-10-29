@@ -15,8 +15,11 @@ type BadgerCache struct {
 
 // A simple check if a given key exist in BadgerDB
 func (b *BadgerCache) Has(str string) (bool, error) {
-	_, err := b.Get(str)
+	val, err := b.Get(str)
 	if err != nil {
+		return false, err
+	}
+	if val == nil {
 		return false, nil
 	}
 

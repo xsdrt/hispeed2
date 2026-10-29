@@ -76,7 +76,7 @@ func (v *Validation) IsFloat(field, value string) {
 }
 
 func (v *Validation) IsDateISO(field, value string) {
-	_, err := time.Parse("2024-04-15", value)
+	_, err := time.Parse("2006-01-02", value)
 	if err != nil {
 		v.AddError(field, "This field must be a date in the ISO form YYYY-MM-DD")
 	}

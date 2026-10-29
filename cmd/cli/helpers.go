@@ -32,7 +32,7 @@ func getDSN() string {
 
 	if dbType == "postgres" {
 		var dsn string
-		if os.Getenv("DATABASE_PASS") != "" { // So, if running a container or have a database password; dev this dns...
+		if os.Getenv("DATABASE_PASS") != "" {
 			dsn = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 				os.Getenv("DATABASE_USER"),
 				os.Getenv("DATABASE_PASS"),
@@ -41,7 +41,7 @@ func getDSN() string {
 				os.Getenv("DATABASE_NAME"),
 				os.Getenv("DATABASE_SSL_MODE"))
 		} else {
-			dsn = fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=%s", // otherwise if users have local postgres on machine with no password ; dev this dsn...
+			dsn = fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=%s",
 				os.Getenv("DATABASE_USER"),
 				os.Getenv("DATABASE_HOST"),
 				os.Getenv("DATABASE_PORT"),
@@ -49,9 +49,18 @@ func getDSN() string {
 				os.Getenv("DATABASE_SSL_MODE"))
 		}
 		return dsn
-	} //if not postgres, build a differnt DSN...
-	return "mysql://" + his.BuildDSN()
+	}
 
+	if dbType == "mysql" || dbType == "mariadb" {
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+			os.Getenv("DATABASE_USER"),
+			os.Getenv("DATABASE_PASS"),
+			os.Getenv("DATABASE_HOST"),
+			os.Getenv("DATABASE_PORT"),
+			os.Getenv("DATABASE_NAME"))
+	}
+
+	return ""
 }
 
 func showHelp() {

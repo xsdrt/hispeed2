@@ -69,18 +69,9 @@ func (m *Mail) ListenForMail() {
 func (m *Mail) Send(msg Message) error {
 	// Use an API or SMTP?
 	if len(m.API) > 0 && len(m.APIKey) > 0 && len(m.APIUrl) > 0 && m.API != "smtp" {
-		m.ChooseAPI(msg)
+		return m.SendUsingAPI(msg, m.API)
 	}
 	return m.SendSTMPMessage(msg)
-}
-
-func (m *Mail) ChooseAPI(msg Message) error {
-	switch m.API {
-	case "mailgun", "sparkpost", "sendgrid": // This is set in the .env file...
-		return m.SendUsingAPI(msg, m.API)
-	default:
-		return fmt.Errorf("unknown api %s; only mailgun, sparkpost or sendgrid supported", m.API)
-	}
 }
 
 func (m *Mail) SendUsingAPI(msg Message, transport string) error {
@@ -214,7 +205,7 @@ func (m *Mail) getEncryption(e string) mail.Encryption {
 		return mail.EncryptionSTARTTLS
 	case "ssl":
 		return mail.EncryptionSSL
-	case "none": // Only during develpment...
+	case "none": // Only during development...
 		return mail.EncryptionNone
 	default: // If the user does not specify the encrption assume want to use tls by default
 		return mail.EncryptionSTARTTLS

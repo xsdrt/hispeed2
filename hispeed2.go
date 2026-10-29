@@ -23,11 +23,6 @@ import (
 
 const version = "1.0.0"
 
-var useRedisCache *cache.RedisCache
-var myBadgerCache *cache.BadgerCache
-var redisPool *redis.Pool
-var badgerConn *badger.DB
-
 // Hispeed2  is the overall type for the Hispeed2 package... Exported members in tghis type
 // are available to any applicatiomn that uses it...Other than the config as no reason for anybody using Hispeed 2 needs to know this info...
 type HiSpeed2 struct {
@@ -47,6 +42,8 @@ type HiSpeed2 struct {
 	Cache         cache.Cache
 	Scheduler     *cron.Cron
 	Mail          mailer.Mail
+	redisPool     *redis.Pool
+	badgerConn    *badger.DB
 }
 
 type config struct {
@@ -102,25 +99,27 @@ func (h *HiSpeed2) New(rootPath string) error {
 	h.Scheduler = scheduler
 
 	// Check the .env to see if you using redis for the cache
-	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" { // Check to see if need to connect to redis; user might not be using redis...
-		useRedisCache = h.createClientRedisCache()
-		h.Cache = useRedisCache
-		redisPool = useRedisCache.Conn
+	if os.Getenv("CACHE") == "redis" || os.Getenv("SESSION_TYPE") == "redis" {
+		cacheClient := h.createClientRedisCache()
+		h.Cache = cacheClient
+		h.redisPool = cacheClient.Conn
 	}
 
 	// check the .env to see if using badger for cache
 	if os.Getenv("CACHE") == "badger" {
-		myBadgerCache = h.createClientBadgerCache()
-		h.Cache = myBadgerCache
-		badgerConn = myBadgerCache.Conn
+		badgerCache, err := h.createClientBadgerCache()
+		if err != nil {
+			return err
+		}
+		h.Cache = badgerCache
+		h.badgerConn = badgerCache.Conn
 
 		_, err = h.Scheduler.AddFunc("@daily", func() {
-			_ = myBadgerCache.Conn.RunValueLogGC(0.7)
+			_ = h.badgerConn.RunValueLogGC(0.7)
 		})
 		if err != nil {
 			return err
 		}
-
 	}
 
 	h.InfoLog = infoLog
@@ -129,7 +128,7 @@ func (h *HiSpeed2) New(rootPath string) error {
 	h.Version = version
 	h.RootPath = rootPath
 	h.Mail = h.createMailer()        // Make sure and place this after setting root path or error...
-	h.Routes = h.routes().(*chi.Mux) // Cast to a pointer of chi.Mux...
+	h.Routes = h.routes().(*chi.Mux)
 
 	h.config = config{
 		port:     os.Getenv("PORT"),
@@ -166,7 +165,7 @@ func (h *HiSpeed2) New(rootPath string) error {
 
 	switch h.config.sessionType {
 	case "redis":
-		sess.RedisPool = useRedisCache.Conn
+		sess.RedisPool = h.redisPool
 
 	case "mysql", "mariadb", "postgres", "postgresql":
 		sess.DBPool = h.DB.Pool
@@ -177,20 +176,9 @@ func (h *HiSpeed2) New(rootPath string) error {
 	h.EncryptionKey = os.Getenv("KEY")
 
 	if h.Debug {
-		var views = jet.NewSet(
-			jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
-			jet.InDevelopmentMode(), // allows to work on jet template with out restarting app after changes
-		)
-
-		h.JetViews = views
-
+		h.JetViews = jet.NewSet(jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)), jet.InDevelopmentMode())
 	} else {
-		var views = jet.NewSet(
-			jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
-		)
-
-		h.JetViews = views
-
+		h.JetViews = jet.NewSet(jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)))
 	}
 
 	h.createRenderer()
@@ -229,12 +217,12 @@ func (h *HiSpeed2) ListenAndServe() {
 		defer h.DB.Pool.Close()
 	}
 
-	if redisPool != nil {
-		defer redisPool.Close()
+	if h.redisPool != nil {
+		defer h.redisPool.Close()
 	}
 
-	if badgerConn != nil {
-		defer badgerConn.Close()
+	if h.badgerConn != nil {
+		defer h.badgerConn.Close()
 	}
 
 	h.InfoLog.Printf("Listening on port %s", os.Getenv("PORT"))
@@ -303,11 +291,15 @@ func (h *HiSpeed2) createClientRedisCache() *cache.RedisCache {
 }
 
 // Create a Badger cacheClient
-func (h *HiSpeed2) createClientBadgerCache() *cache.BadgerCache {
-	cacheClient := cache.BadgerCache{
-		Conn: h.createBadgerConn(),
+func (h *HiSpeed2) createClientBadgerCache() (*cache.BadgerCache, error) {
+	conn, err := h.createBadgerConn()
+	if err != nil {
+		return nil, err
 	}
-	return &cacheClient
+	cacheClient := cache.BadgerCache{
+		Conn: conn,
+	}
+	return &cacheClient, nil
 }
 
 // Create a Redis Pool
@@ -330,34 +322,38 @@ func (h *HiSpeed2) createRedisPool() *redis.Pool {
 }
 
 // Create a Badger pool
-func (h *HiSpeed2) createBadgerConn() *badger.DB {
+func (h *HiSpeed2) createBadgerConn() (*badger.DB, error) {
 	db, err := badger.Open(badger.DefaultOptions(h.RootPath + "/tmp/badger"))
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return db
+	return db, nil
 }
 
 func (h *HiSpeed2) BuildDSN() string {
-	var dsn string //store the connection string in this var...
-
 	switch os.Getenv("DATABASE_TYPE") {
 	case "postgres", "postgresql":
-		dsn = fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s timezone=UTC connect_timeout=5",
+		dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=%s timezone=UTC connect_timeout=5",
 			os.Getenv("DATABASE_HOST"),
 			os.Getenv("DATABASE_PORT"),
 			os.Getenv("DATABASE_USER"),
 			os.Getenv("DATABASE_NAME"),
 			os.Getenv("DATABASE_SSL_MODE"))
 
-		if os.Getenv("DATABASE_PASS") != "" { //need to support some postgres that do not require a password...
+		if os.Getenv("DATABASE_PASS") != "" {
 			dsn = fmt.Sprintf("%s password=%s", dsn, os.Getenv("DATABASE_PASS"))
 		}
+		return dsn
+
+	case "mysql", "mariadb":
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+			os.Getenv("DATABASE_USER"),
+			os.Getenv("DATABASE_PASS"),
+			os.Getenv("DATABASE_HOST"),
+			os.Getenv("DATABASE_PORT"),
+			os.Getenv("DATABASE_NAME"))
 
 	default:
-
+		return ""
 	}
-
-	return dsn
-
 }

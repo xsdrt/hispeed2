@@ -7,10 +7,7 @@ import (
 	"github.com/CloudyKit/jet/v6"
 )
 
-var views = jet.NewSet(
-	jet.NewOSFileSystemLoader("./testdata/views"),
-	jet.InDevelopmentMode(),
-)
+var views = jet.NewSet(jet.NewOSFileSystemLoader("./testdata/views"), jet.InDevelopmentMode())
 
 var testRenderer = Render{
 	Renderer: "",
