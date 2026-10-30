@@ -35,21 +35,16 @@ func TestMain(m *testing.M) {
 
 	defer testRedisCache.Conn.Close()
 
-	_ = os.RemoveAll("./testdata/tmp/badger") // before starting a new test make sure old test DB is deleted...
+	_ = os.RemoveAll("./testdata/tmp/badger")
 
-	// create a badger database(test) for a test cache...
-	if _, err := os.Stat("./testdata/tmp"); os.IsNotExist(err) {
-		err := os.Mkdir("./testdata/tmp", 0755)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	err = os.Mkdir("./testdata/tmp/badger", 0755)
+	err = os.MkdirAll("./testdata/tmp/badger", 0755)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	db, _ := badger.Open(badger.DefaultOptions("./testdata/tmp/badger")) // cretae DB if doesn't exist...
+	db, err := badger.Open(badger.DefaultOptions("./testdata/tmp/badger"))
+	if err != nil {
+		log.Fatal(err)
+	}
 	testBadgerCache.Conn = db
 
 	os.Exit(m.Run())

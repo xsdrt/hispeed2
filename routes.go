@@ -1,13 +1,11 @@
 package hispeed2
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func (h *HiSpeed2) routes() http.Handler {
+func (h *HiSpeed2) routes() *chi.Mux {
 	mux := chi.NewRouter()
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)

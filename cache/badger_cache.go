@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"time"
 
 	"github.com/dgraph-io/badger/v3"
@@ -17,6 +18,9 @@ type BadgerCache struct {
 func (b *BadgerCache) Has(str string) (bool, error) {
 	val, err := b.Get(str)
 	if err != nil {
+		if errors.Is(err, badger.ErrKeyNotFound) {
+			return false, nil
+		}
 		return false, err
 	}
 	if val == nil {

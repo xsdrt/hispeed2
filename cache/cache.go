@@ -69,6 +69,9 @@ func (c *RedisCache) Get(str string) (interface{}, error) {
 
 	cacheEntry, err := redis.Bytes(conn.Do("GET", key))
 	if err != nil {
+		if err == redis.ErrNil {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -178,11 +181,22 @@ func (c *RedisCache) getKeys(pattern string) ([]string, error) {
 			return keys, err
 		}
 
-		iter, _ = redis.Int(arr[0], nil)
-		k, _ := redis.Strings(arr[1], nil)
+		if len(arr) < 2 {
+			return keys, fmt.Errorf("unexpected SCAN reply length: %d", len(arr))
+		}
+
+		nextIter, err := redis.Int(arr[0], err)
+		if err != nil {
+			return keys, err
+		}
+
+		k, err := redis.Strings(arr[1], err)
+		if err != nil {
+			return keys, err
+		}
 		keys = append(keys, k...)
 
-		if iter == 0 {
+		if nextIter == 0 {
 			break
 		}
 	}

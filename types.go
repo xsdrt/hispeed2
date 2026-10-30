@@ -15,11 +15,6 @@ type cookieConfig struct {
 	domain   string
 }
 
-type databaseConfig struct {
-	dsn      string
-	database string
-}
-
 type Database struct { //Exporting
 	DataType string //I.E. Postgres, MariaDb etc...
 	Pool     *sql.DB

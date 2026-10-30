@@ -14,13 +14,11 @@ import (
 )
 
 type Render struct {
-	Renderer   string
-	RootPath   string
-	Secure     bool
-	Port       string
-	ServerName string
-	JetViews   *jet.Set
-	Session    *scs.SessionManager
+	Renderer string
+	RootPath string
+	Port     string
+	JetViews *jet.Set
+	Session  *scs.SessionManager
 }
 
 type TemplateData struct {
@@ -31,16 +29,12 @@ type TemplateData struct {
 	Data            map[string]interface{}
 	CSRFToken       string
 	Port            string
-	ServerName      string
-	Secure          bool
 }
 
 func (h *Render) defaultData(td *TemplateData, r *http.Request) *TemplateData {
-	td.Secure = h.Secure
-	td.ServerName = h.ServerName
 	td.CSRFToken = nosurf.Token(r) // Passes the csrf token to every template used for the site
 	td.Port = h.Port
-	if h.Session.Exists(r.Context(), "userID") { // if userID exists then by default the user must be authenticated...
+	if h.Session != nil && h.Session.Exists(r.Context(), "userID") {
 		td.IsAuthenticated = true
 	}
 	return td
@@ -71,8 +65,9 @@ func (h *Render) GoPage(w http.ResponseWriter, r *http.Request, view string, dat
 		td = data.(*TemplateData)
 	}
 
-	err = tmpl.Execute(w, &td)
-	if err != nil {
+	td = h.defaultData(td, r)
+
+	if err = tmpl.Execute(w, td); err != nil {
 		return err
 	}
 

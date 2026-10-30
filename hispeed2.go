@@ -48,10 +48,9 @@ type HiSpeed2 struct {
 
 type config struct {
 	port        string
-	renderer    string // What template engine to use , either the std Go or Jet pkg...
+	renderer    string
 	cookie      cookieConfig
 	sessionType string
-	database    databaseConfig
 	redis       redisConfig
 }
 
@@ -80,14 +79,14 @@ func (h *HiSpeed2) New(rootPath string) error {
 	}
 
 	// Create loggers...
-	infoLog, errorLog := h.startLogers()
+	infoLog, errorLog := h.startLoggers()
 
 	// connect to the database
 	if os.Getenv("DATABASE_TYPE") != "" {
 		db, err := h.OpenDB(os.Getenv("DATABASE_TYPE"), h.BuildDSN())
 		if err != nil {
-			errorLog.Println(err)
-			os.Exit(1)
+			h.ErrorLog = errorLog
+			return fmt.Errorf("could not connect to database: %w", err)
 		}
 		h.DB = Database{
 			DataType: os.Getenv("DATABASE_TYPE"),
@@ -127,8 +126,8 @@ func (h *HiSpeed2) New(rootPath string) error {
 	h.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	h.Version = version
 	h.RootPath = rootPath
-	h.Mail = h.createMailer()        // Make sure and place this after setting root path or error...
-	h.Routes = h.routes().(*chi.Mux)
+	h.Mail = h.createMailer()
+	h.Routes = h.routes()
 
 	h.config = config{
 		port:     os.Getenv("PORT"),
@@ -141,10 +140,6 @@ func (h *HiSpeed2) New(rootPath string) error {
 			domain:   os.Getenv("COOKIE_DOMAIN"),
 		},
 		sessionType: os.Getenv("SESSION_TYPE"),
-		database: databaseConfig{
-			database: os.Getenv("DATABASE_TYPE"),
-			dsn:      h.BuildDSN(),
-		},
 		redis: redisConfig{
 			host:     os.Getenv("REDIS_HOST"),
 			password: os.Getenv("REDIS_PASSWORD"),
@@ -160,7 +155,6 @@ func (h *HiSpeed2) New(rootPath string) error {
 		CookieName:     h.config.cookie.name,
 		SessionType:    h.config.sessionType,
 		CookieDomain:   h.config.cookie.domain,
-		//DBPool:         h.DB.Pool,  // this might be set to nil if not using a db
 	}
 
 	switch h.config.sessionType {
@@ -210,7 +204,7 @@ func (h *HiSpeed2) ListenAndServe() {
 		Handler:      h.Routes,
 		IdleTimeout:  30 * time.Second,
 		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 600 * time.Second, // Longtime out for dev purposes for now...
+		WriteTimeout: 600 * time.Second, // Long timeout for dev purposes
 	}
 
 	if h.DB.Pool != nil {
@@ -238,7 +232,7 @@ func (h *HiSpeed2) checkDotEnv(path string) error {
 	return nil
 }
 
-func (h *HiSpeed2) startLogers() (*log.Logger, *log.Logger) { // made some vars, when in prod and not debug will write to files
+func (h *HiSpeed2) startLoggers() (*log.Logger, *log.Logger) {
 	var infoLog *log.Logger
 	var errorLog *log.Logger
 
@@ -257,7 +251,6 @@ func (h *HiSpeed2) createRenderer() {
 		Session:  h.Session,
 	}
 	h.Render = &myRenderer
-
 }
 
 func (h *HiSpeed2) createMailer() mailer.Mail {
